@@ -1,0 +1,5 @@
+* text=auto
+
+*.sln       merge=binary
+*.vcxproj   merge=binary
+*.vcproj    merge=binary

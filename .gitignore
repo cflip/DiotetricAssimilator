@@ -1,0 +1,10 @@
+# Build output
+bin/
+*.cso
+
+# Visual Studio configurations
+.vs/
+*.user
+
+# I probably shouldn't commit this texture
+brickwall_albedo.tiff
