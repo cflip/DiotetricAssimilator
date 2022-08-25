@@ -188,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="buffer.h" />
     <ClInclude Include="constant_buffer.h" />
+    <ClInclude Include="debug.h" />
     <ClInclude Include="gfx.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />

@@ -1,6 +1,7 @@
 #include "gfx.h"
 
 #include "buffer.h"
+#include "debug.h"
 #include "shader.h"
 
 GfxContext::GfxContext(const Window& window)
@@ -23,7 +24,7 @@ GfxContext::GfxContext(const Window& window)
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, deviceFlags, nullptr, 0, D3D11_SDK_VERSION, &sc, &m_swapChain, &m_device, nullptr, &m_context);
+	GFX_ASSERT(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, deviceFlags, nullptr, 0, D3D11_SDK_VERSION, &sc, &m_swapChain, &m_device, nullptr, &m_context));
 
 	D3D11_VIEWPORT vp;
 	vp.Width = static_cast<float>(window.GetWidth());
@@ -34,8 +35,8 @@ GfxContext::GfxContext(const Window& window)
 	vp.TopLeftY = 0;
 	m_context->RSSetViewports(1, &vp);
 
-	m_swapChain->GetBuffer(0, __uuidof(ID3D11Resource), &m_backBuffer);
-	m_device->CreateRenderTargetView(m_backBuffer.Get(), nullptr, &m_renderTarget);
+	GFX_ASSERT(m_swapChain->GetBuffer(0, __uuidof(ID3D11Resource), &m_backBuffer));
+	GFX_ASSERT(m_device->CreateRenderTargetView(m_backBuffer.Get(), nullptr, &m_renderTarget));
 	m_context->OMSetRenderTargets(1, m_renderTarget.GetAddressOf(), nullptr);
 
 	SetupDepthBuffer(window.GetWidth(), window.GetHeight());
@@ -57,7 +58,7 @@ void GfxContext::Draw(const IndexBuffer& ib)
 
 void GfxContext::Present()
 {
-	m_swapChain->Present(1, 0);
+	GFX_ASSERT(m_swapChain->Present(1, 0));
 }
 
 void GfxContext::SetupInputLayout(const VertexShader& vertexShader)
@@ -70,7 +71,7 @@ void GfxContext::SetupInputLayout(const VertexShader& vertexShader)
 	};
 
 	ID3DBlob* blob = vertexShader.GetSourceBlob();
-	m_device->CreateInputLayout(inputElements, ARRAYSIZE(inputElements), blob->GetBufferPointer(), blob->GetBufferSize(), &inputLayout);
+	GFX_ASSERT(m_device->CreateInputLayout(inputElements, ARRAYSIZE(inputElements), blob->GetBufferPointer(), blob->GetBufferSize(), &inputLayout));
 	m_context->IASetInputLayout(inputLayout.Get());
 }
 
@@ -83,7 +84,7 @@ void GfxContext::SetupDepthBuffer(unsigned width, unsigned height)
 	dsd.DepthFunc = D3D11_COMPARISON_LESS;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthState;
-	m_device->CreateDepthStencilState(&dsd, &depthState);
+	GFX_ASSERT(m_device->CreateDepthStencilState(&dsd, &depthState));
 	m_context->OMSetDepthStencilState(depthState.Get(), 1);
 
 	D3D11_TEXTURE2D_DESC dtd;
@@ -100,7 +101,7 @@ void GfxContext::SetupDepthBuffer(unsigned width, unsigned height)
 	dtd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencil;
-	m_device->CreateTexture2D(&dtd, nullptr, &depthStencil);
+	GFX_ASSERT(m_device->CreateTexture2D(&dtd, nullptr, &depthStencil));
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC stencilViewDesc;
 
@@ -109,7 +110,7 @@ void GfxContext::SetupDepthBuffer(unsigned width, unsigned height)
 	stencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	stencilViewDesc.Texture2D.MipSlice = 0;
 
-	m_device->CreateDepthStencilView(depthStencil.Get(), &stencilViewDesc, &m_depthView);
+	GFX_ASSERT(m_device->CreateDepthStencilView(depthStencil.Get(), &stencilViewDesc, &m_depthView));
 	m_context->OMSetRenderTargets(1, m_renderTarget.GetAddressOf(), m_depthView.Get());
 }
 
@@ -123,6 +124,6 @@ void GfxContext::SetupTextureSampler()
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
-	m_device->CreateSamplerState(&samplerDesc, &sampler);
+	GFX_ASSERT(m_device->CreateSamplerState(&samplerDesc, &sampler));
 	m_context->PSSetSamplers(0, 1, sampler.GetAddressOf());
 }

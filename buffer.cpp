@@ -1,5 +1,7 @@
 #include "buffer.h"
 
+#include "debug.h"
+
 VertexBuffer::VertexBuffer(const GfxContext& gfx, const std::vector<Vertex>& vertices)
 	: m_gfx(gfx)
 {
@@ -14,7 +16,7 @@ VertexBuffer::VertexBuffer(const GfxContext& gfx, const std::vector<Vertex>& ver
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = vertices.data();
 
-	m_gfx.GetDevice()->CreateBuffer(&desc, &data, &m_buffer);
+	GFX_ASSERT(m_gfx.GetDevice()->CreateBuffer(&desc, &data, &m_buffer));
 }
 
 void VertexBuffer::Bind() const
@@ -38,7 +40,7 @@ IndexBuffer::IndexBuffer(const GfxContext& gfx, const std::vector<unsigned short
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = indices.data();
 
-	m_gfx.GetDevice()->CreateBuffer(&desc, &data, &m_buffer);
+	GFX_ASSERT(m_gfx.GetDevice()->CreateBuffer(&desc, &data, &m_buffer));
 }
 
 void IndexBuffer::Bind() const

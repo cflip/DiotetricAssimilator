@@ -1,5 +1,7 @@
 #include "constant_buffer.h"
 
+#include "debug.h"
+
 ConstantBuffer::ConstantBuffer(const GfxContext& gfx, ConstantBufferData initialData)
 	: m_gfx(gfx)
 {
@@ -14,7 +16,7 @@ ConstantBuffer::ConstantBuffer(const GfxContext& gfx, ConstantBufferData initial
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = &initialData;
 
-	m_gfx.GetDevice()->CreateBuffer(&desc, &data, &m_buffer);
+	GFX_ASSERT(m_gfx.GetDevice()->CreateBuffer(&desc, &data, &m_buffer));
 }
 
 void ConstantBuffer::Bind() const
@@ -27,7 +29,7 @@ void ConstantBuffer::Update(ConstantBufferData data)
 	// TODO: This does a memory copy every single frame
 
 	D3D11_MAPPED_SUBRESOURCE msr;
-	m_gfx.GetContext()->Map(m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+	GFX_ASSERT(m_gfx.GetContext()->Map(m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
 	CopyMemory(msr.pData, &data, sizeof(data));
 	m_gfx.GetContext()->Unmap(m_buffer.Get(), 0);
 }
