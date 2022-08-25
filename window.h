@@ -11,6 +11,9 @@ public:
 	void Update();
 	bool ShouldClose() const { return m_shouldClose; };
 
+	UINT GetWidth() const;
+	UINT GetHeight() const;
+
 	HWND GetWindowHandle() const { return m_hwnd; }
 private:
 	bool m_shouldClose{ false };

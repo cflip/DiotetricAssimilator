@@ -74,7 +74,7 @@ Texture::Texture(const GfxContext& gfx, LPCWSTR filename)
 	data.SysMemSlicePitch = imageSize;
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
-	gfx.device->CreateTexture2D(&desc, &data, &texture);
+	gfx.GetDevice()->CreateTexture2D(&desc, &data, &texture);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC tvd;
 	ZeroMemory(&tvd, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
@@ -83,12 +83,12 @@ Texture::Texture(const GfxContext& gfx, LPCWSTR filename)
 	tvd.Texture2D.MostDetailedMip = 0;
 	tvd.Texture2D.MipLevels = 1;
 
-	gfx.device->CreateShaderResourceView(texture.Get(), &tvd, &m_textureView);
+	gfx.GetDevice()->CreateShaderResourceView(texture.Get(), &tvd, &m_textureView);
 
 	delete[] buffer;
 }
 
 void Texture::Bind(const GfxContext& gfx)
 {
-	gfx.context->PSSetShaderResources(0, 1, m_textureView.GetAddressOf());
+	gfx.GetContext()->PSSetShaderResources(0, 1, m_textureView.GetAddressOf());
 }

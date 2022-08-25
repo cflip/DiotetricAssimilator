@@ -64,3 +64,17 @@ void Window::Update()
 		DispatchMessage(&msg);
 	}
 }
+
+UINT Window::GetWidth() const
+{
+	RECT rc;
+	GetClientRect(m_hwnd, &rc);
+	return rc.right - rc.left;
+}
+
+UINT Window::GetHeight() const
+{
+	RECT rc;
+	GetClientRect(m_hwnd, &rc);
+	return rc.bottom - rc.top;
+}

@@ -3,11 +3,7 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
-struct GfxContext
-{
-	ID3D11Device* device;
-	ID3D11DeviceContext* context;
-};
+#include "gfx.h"
 
 class Texture
 {
