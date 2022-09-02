@@ -1,4 +1,6 @@
 #include <Windows.h>
+#include <DirectXMath.h>
+
 #include <chrono>
 
 #include "gfx.h"
@@ -91,15 +93,20 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	DirectX::XMMATRIX perspMatrix = DirectX::XMMatrixPerspectiveLH(1.0f, AspectRatio, 0.5f, 10.0f);
 
-	const ConstantBufferData cb =
+	struct VertexConstBufferData
+	{
+		DirectX::XMMATRIX transform;
+	};
+
+	const VertexConstBufferData cb =
 	{
 		{
 			DirectX::XMMatrixTranspose(DirectX::XMMatrixTranslation(0.0f, 0.0f, 4.0f) * perspMatrix)
 		}
 	};
 
-	ConstantBuffer constBuffer(gfx, cb);
-	constBuffer.Bind();
+	VertexConstantBuffer vertexConstBuffer(gfx, &cb, sizeof(cb));
+	vertexConstBuffer.Bind();
 
 	VertexShader vertexShader(gfx, L"VertexShader.cso");
 	PixelShader pixelShader(gfx, L"PixelShader.cso");
@@ -125,13 +132,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 		for (const auto& obj : objects)
 		{
-			const ConstantBufferData newConstantBufferValues =
+			const VertexConstBufferData newConstantBufferValues =
 			{
 				{
 					DirectX::XMMatrixTranspose(obj.GetTransformMatrix(time) * perspMatrix)
 				}
 			};
-			constBuffer.Update(newConstantBufferValues);
+			vertexConstBuffer.Update(&newConstantBufferValues, sizeof(newConstantBufferValues));
 			gfx.Draw(indexBuffer);
 		}
 
