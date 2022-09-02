@@ -10,6 +10,22 @@
 
 #pragma comment(lib, "d3d11.lib")
 
+class Object
+{
+public:
+	Object(float offs) : m_offs(offs) {}
+
+	DirectX::XMMATRIX GetTransformMatrix(float time) const
+	{
+		return DirectX::XMMatrixRotationX(time + m_offs) * 
+			DirectX::XMMatrixRotationZ(time - m_offs) * 
+			DirectX::XMMatrixTranslation(m_offs, abs(sin(time * 4 + m_offs)) - 0.5f, 6.0f);
+	}
+
+private:
+	float m_offs;
+};
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
 	// Enable run-time memory check for debug builds.
@@ -19,6 +35,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	constexpr int Width = 1280;
 	constexpr int Height = 720;
+	constexpr float AspectRatio = static_cast<float>(Height) / static_cast<float>(Width);
 
 	Window window(Width, Height, L"Diotetric Assimilator");
 	GfxContext gfx(window);
@@ -67,14 +84,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	IndexBuffer indexBuffer(gfx, indices);
 	indexBuffer.Bind();
 
-	constexpr float AspectRatio = 9.0f / 16.0f;
+	std::vector<Object> objects;
+	objects.emplace_back(-3.0f);
+	objects.emplace_back(0.0f);
+	objects.emplace_back(3.0f);
+
+	DirectX::XMMATRIX perspMatrix = DirectX::XMMatrixPerspectiveLH(1.0f, AspectRatio, 0.5f, 10.0f);
+
 	const ConstantBufferData cb =
 	{
 		{
-			DirectX::XMMatrixTranspose(
-				DirectX::XMMatrixTranslation(0.0f, 0.0f, 4.0f) *
-				DirectX::XMMatrixPerspectiveLH(1.0f, AspectRatio, 0.5f, 10.0f)
-			)
+			DirectX::XMMatrixTranspose(DirectX::XMMatrixTranslation(0.0f, 0.0f, 4.0f) * perspMatrix)
 		}
 	};
 
@@ -96,25 +116,25 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 		auto now = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float>(now - lastTime).count();
-		const ConstantBufferData newConstantBufferValues =
-		{
-			{
-				DirectX::XMMatrixTranspose(
-					DirectX::XMMatrixRotationX(time) *
-					DirectX::XMMatrixRotationZ(time) *
-					DirectX::XMMatrixTranslation(0.0f, abs(sin(time * 4)) - 0.5f, 4.0f) *
-					DirectX::XMMatrixPerspectiveLH(1.0f, AspectRatio, 0.5f, 10.0f)
-				)
-			}
-		};
-		constBuffer.Update(newConstantBufferValues);
 
 		vertexShader.Bind();
 		pixelShader.Bind();
 
 		const float colour[] = { 0.1f, 0.1f, 0.2f, 1.0f };
 		gfx.ClearColor(colour);
-		gfx.Draw(indexBuffer);
+
+		for (const auto& obj : objects)
+		{
+			const ConstantBufferData newConstantBufferValues =
+			{
+				{
+					DirectX::XMMatrixTranspose(obj.GetTransformMatrix(time) * perspMatrix)
+				}
+			};
+			constBuffer.Update(newConstantBufferValues);
+			gfx.Draw(indexBuffer);
+		}
+
 		gfx.Present();
 	}
 }
